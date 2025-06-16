@@ -19,6 +19,9 @@
         <!-- Register the annotator to make file references directly clickable -->
         <annotator language="TEXT" implementationClass="org.jetbrains.plugins.template.annotator.FileReferenceAnnotator"/>
         <annotator language="" implementationClass="org.jetbrains.plugins.template.annotator.FileReferenceAnnotator"/>
+
+        <!-- Register the Go to Declaration handler for Command+click navigation -->
+        <gotoDeclarationHandler implementation="org.jetbrains.plugins.template.handlers.FileReferenceGotoDeclarationHandler"/>
     </extensions>
 
     <actions>

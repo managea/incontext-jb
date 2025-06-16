@@ -1,18 +1,24 @@
 package org.jetbrains.plugins.template.annotator
 
+import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
+import com.intellij.codeInsight.daemon.LineMarkerInfo
+import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ScrollType
+import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
 import java.io.File
 
 /**
@@ -47,7 +53,7 @@ class FileReferenceAnnotator : Annotator {
             val end = element.textRange.startOffset + range.last + 1
             val textRange = TextRange(start, end)
 
-            // Create an annotation with hyperlink
+            // Create an annotation with hyperlink for Command+click navigation
             holder.newAnnotation(HighlightSeverity.INFORMATION, "Navigate to file")
                 .range(textRange)
                 .textAttributes(DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE)
@@ -58,6 +64,13 @@ class FileReferenceAnnotator : Annotator {
                     referenceParts.startLine,
                     referenceParts.endLine
                 ))
+                .newFix(CreateGotoDeclarationHandler(
+                    element.project,
+                    referenceParts.relativePath,
+                    referenceParts.startLine,
+                    referenceParts.endLine
+                ))
+                .registerFix()
                 .create()
         }
     }
