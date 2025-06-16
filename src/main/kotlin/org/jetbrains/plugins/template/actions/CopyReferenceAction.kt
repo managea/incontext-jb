@@ -58,6 +58,6 @@ class CopyReferenceAction : AnAction() {
             filePath
         }
 
-        return "$projectName/$relativePath:L$startLine-$endLine"
+        return "@$projectName/$relativePath:L$startLine-$endLine"
     }
 }

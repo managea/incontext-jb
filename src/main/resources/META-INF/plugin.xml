@@ -11,6 +11,14 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="org.jetbrains.plugins.template.startup.MyProjectActivity" />
+
+        <!-- Register the reference contributors for clickable file references -->
+        <psi.referenceContributor language="" implementation="org.jetbrains.plugins.template.reference.FileLineReferenceContributor"/>
+        <psi.referenceContributor language="TEXT" implementation="org.jetbrains.plugins.template.reference.PlainTextReferenceContributor"/>
+
+        <!-- Register the annotator to make file references directly clickable -->
+        <annotator language="TEXT" implementationClass="org.jetbrains.plugins.template.annotator.FileReferenceAnnotator"/>
+        <annotator language="" implementationClass="org.jetbrains.plugins.template.annotator.FileReferenceAnnotator"/>
     </extensions>
 
     <actions>
