@@ -1,0 +1,24 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>org.jetbrains.plugins.template</id>
+    <name>Copy Reference</name>
+    <vendor>JetBrains</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <resource-bundle>messages.MyBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <postStartupActivity implementation="org.jetbrains.plugins.template.startup.MyProjectActivity" />
+    </extensions>
+
+    <actions>
+        <action id="org.jetbrains.plugins.template.actions.CopyReferenceAction"
+                class="org.jetbrains.plugins.template.actions.CopyReferenceAction"
+                text="Copy Reference"
+                description="Copy reference to the selected text in the format: project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="CopyReference"/>
+        </action>
+    </actions>
+</idea-plugin>
