@@ -11,6 +11,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.template.navigation.FileReferenceIndex
 import org.jetbrains.plugins.template.navigation.FileReferenceIndexer
+import java.io.File
 
 /**
  * Annotator that makes file references clickable.
@@ -19,7 +20,11 @@ import org.jetbrains.plugins.template.navigation.FileReferenceIndexer
 class FileReferenceAnnotator : Annotator {
     companion object {
         private val LOG = Logger.getInstance(FileReferenceAnnotator::class.java)
-        private val REFERENCE_PATTERN = "@([\\w-]+/[\\w\\-./]+):L(\\d+)-(\\d+)".toRegex()
+        // Updated pattern to handle both formats:
+        // 1. @workspace/project/path:L1-2
+        // 2. @workspace/project/path:L1 (single line)
+        // Also handle cases with full paths that might have double slashes
+        private val REFERENCE_PATTERN = "@([\\w-]+/[\\w\\-./]+):L(\\d+)(?:-(\\d+))?".toRegex()
     }
 
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -78,14 +83,15 @@ class FileReferenceAnnotator : Annotator {
         try {
             // Find the target file
             val basePath = project.basePath ?: return
-            val targetFilePath = "$basePath/${referenceParts.relativePath}"
-            val targetFile = LocalFileSystem.getInstance().findFileByPath(targetFilePath)
-
+            
+            // Try to find the target file using different path resolution strategies
+            var targetFile = findTargetFile(project, referenceParts)
+            
             if (targetFile == null) {
-                LOG.warn("Could not find target file: $targetFilePath")
+                LOG.warn("Could not find target file for reference: ${referenceParts.projectName}/${referenceParts.relativePath}")
                 return
             }
-
+            
             // Get the source file (the file containing the reference)
             val sourceFile = element.containingFile.virtualFile
             val sourceOffset = element.textRange.startOffset
@@ -105,12 +111,106 @@ class FileReferenceAnnotator : Annotator {
             )
 
             // Refresh code analysis to update gutter icons
-            FileReferenceIndexer.getInstance(project).refreshFileCodeAnalysis(targetFilePath)
+            FileReferenceIndexer.getInstance(project).refreshFileCodeAnalysis(targetFile.path)
 
             LOG.debug("Added reference to index: ${sourceFile.path} -> ${targetFile.path}:${referenceParts.startLine}-${referenceParts.endLine}")
         } catch (e: Exception) {
             LOG.error("Failed to update reference index", e)
         }
+    }
+    
+    /**
+     * Try multiple strategies to find the target file
+     */
+    private fun findTargetFile(project: Project, referenceParts: ParsedReference): com.intellij.openapi.vfs.VirtualFile? {
+        val basePath = project.basePath ?: return null
+        LOG.debug("Finding target file for reference: ${referenceParts.projectName}/${referenceParts.relativePath}")
+        LOG.debug("Current project base path: $basePath")
+        
+        // Strategy 1: Direct path from project root
+        val directPath = "$basePath/${referenceParts.relativePath}"
+        LOG.debug("Trying direct path: $directPath")
+        var targetFile = LocalFileSystem.getInstance().findFileByPath(directPath)
+        if (targetFile != null) {
+            LOG.debug("Found file using direct path")
+            return targetFile
+        }
+        
+        // Strategy 2: Try with project name in path
+        val pathWithProject = "$basePath/${referenceParts.projectName}/${referenceParts.relativePath}"
+        LOG.debug("Trying with project name: $pathWithProject")
+        targetFile = LocalFileSystem.getInstance().findFileByPath(pathWithProject)
+        if (targetFile != null) {
+            LOG.debug("Found file using project name path")
+            return targetFile
+        }
+        
+        // Strategy 3: Check if we're in a multi-project workspace
+        // Look for sibling directories at the workspace level
+        val workspacePath = basePath.substringBeforeLast("/")
+        val projectNameDir = File("$workspacePath/${referenceParts.projectName}")
+        
+        if (projectNameDir.exists() && projectNameDir.isDirectory) {
+            // The project directory exists as a sibling to the current project
+            val siblingProjectPath = "$workspacePath/${referenceParts.projectName}/${referenceParts.relativePath}"
+            LOG.debug("Trying sibling project path: $siblingProjectPath")
+            targetFile = LocalFileSystem.getInstance().findFileByPath(siblingProjectPath)
+            if (targetFile != null) {
+                LOG.debug("Found file using sibling project path")
+                return targetFile
+            }
+        }
+        
+        // Strategy 4: Look for common project directory structures
+        LOG.debug("Workspace path: $workspacePath")
+        
+        // Try common project directory names
+        val possibleProjectDirs = listOf("src", "app", "lib", "packages", "projects", "modules", "backend", "frontend")
+        
+        // First try with the project name as a directory
+        val projectNamePath = "$workspacePath/${referenceParts.projectName}/${referenceParts.relativePath}"
+        LOG.debug("Trying project name path: $projectNamePath")
+        targetFile = LocalFileSystem.getInstance().findFileByPath(projectNamePath)
+        if (targetFile != null) {
+            LOG.debug("Found file using project name path")
+            return targetFile
+        }
+        
+        // Then try with common project directories
+        for (projectDir in possibleProjectDirs) {
+            // Try the project name as a parent directory
+            val path1 = "$workspacePath/${referenceParts.projectName}/$projectDir/${referenceParts.relativePath}"
+            LOG.debug("Trying path with project name as parent: $path1")
+            targetFile = LocalFileSystem.getInstance().findFileByPath(path1)
+            if (targetFile != null) {
+                LOG.debug("Found file using project name as parent")
+                return targetFile
+            }
+            
+            // Try the project name as a child directory
+            val path2 = "$workspacePath/$projectDir/${referenceParts.projectName}/${referenceParts.relativePath}"
+            LOG.debug("Trying path with project name as child: $path2")
+            targetFile = LocalFileSystem.getInstance().findFileByPath(path2)
+            if (targetFile != null) {
+                LOG.debug("Found file using project name as child")
+                return targetFile
+            }
+        }
+        
+        // Strategy 5: Search in parent directories
+        val parentPath = basePath.substringBeforeLast("/")
+        val pathInParent = "$parentPath/${referenceParts.relativePath}"
+        LOG.debug("Trying parent path: $pathInParent")
+        targetFile = LocalFileSystem.getInstance().findFileByPath(pathInParent)
+        if (targetFile != null) {
+            LOG.debug("Found file using parent path")
+            return targetFile
+        }
+        
+        // Strategy 6: Use FileReferenceIndexer to find the file
+        LOG.debug("Trying FileReferenceIndexer")
+        val indexer = FileReferenceIndexer.getInstance(project)
+        return indexer.findFileInProject(referenceParts.relativePath)
     }
 
     /**
@@ -122,12 +222,12 @@ class FileReferenceAnnotator : Annotator {
             val refWithoutPrefix = if (ref.startsWith("@")) ref.substring(1) else ref
 
             // Match the line number part (L{from-line-number}-{to-line-number})
-            val lineNumbersPattern = ":L(\\d+)-(\\d+)$".toRegex()
+            val lineNumbersPattern = ":L(\\d+)(?:-(\\d+))?".toRegex()
             val lineNumbersMatch = lineNumbersPattern.find(refWithoutPrefix) ?: return null
 
             // Extract start and end line numbers
             val startLine = lineNumbersMatch.groupValues[1].toIntOrNull() ?: return null
-            val endLine = lineNumbersMatch.groupValues[2].toIntOrNull() ?: return null
+            val endLine = lineNumbersMatch.groupValues[2]?.toIntOrNull() ?: startLine
 
             // Extract the path part (everything before the line numbers)
             val pathPart = refWithoutPrefix.substring(0, lineNumbersMatch.range.first)

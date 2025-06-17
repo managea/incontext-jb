@@ -179,7 +179,7 @@ class FileReferenceIndexer(private val project: Project) {
     /**
      * Find a file in the project by its path
      */
-    private fun findFileInProject(filePath: String): VirtualFile? {
+    public fun findFileInProject(filePath: String): VirtualFile? {
         // Try to find the file relative to the project root
         val projectBasePath = project.basePath
         if (projectBasePath != null) {
