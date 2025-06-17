@@ -76,7 +76,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             25, // end line
             sourceFile,
             10, // start offset in source file
-            40  // end offset in source file
+            40, // end offset in source file
+            20  // self line number (where the reference is defined in source file)
         )
         
         // Verify the reference was added correctly
@@ -95,7 +96,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             25, // end line
             sourceFile,
             10, // start offset
-            40  // end offset
+            40, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         referenceIndex.addReference(
@@ -104,7 +106,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             30,
             sourceFile,
             50, // start offset
-            80  // end offset
+            80, // end offset
+            30  // self line number (where the reference is defined in source file)
         )
         
         // Test finding references to line in range
@@ -137,7 +140,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             25, // end line
             sourceFile,
             10, // start offset
-            40  // end offset
+            40, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         referenceIndex.addReference(
@@ -146,7 +150,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             30,
             sourceFile,
             50, // start offset
-            80  // end offset
+            80, // end offset
+            30  // self line number (where the reference is defined in source file)
         )
         
         // Get all line ranges
@@ -168,7 +173,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             25, // end line
             sourceFile,
             10, // start offset
-            40  // end offset
+            40, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         // Verify reference was added
@@ -208,7 +214,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             25, // end line
             sourceFile,
             10, // start offset
-            40  // end offset
+            40, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         // Verify references are found for all lines in the range
@@ -234,7 +241,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             25, // end line
             sourceFile,
             10, // start offset
-            40  // end offset
+            40, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         // Verify that the reference was added correctly
@@ -270,7 +278,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             10, // end line
             sourceFile,
             10, // start offset
-            20  // end offset
+            20, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         // Verify the reference exists in the index
@@ -299,7 +308,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             10, // end line
             sourceFile,
             10, // start offset
-            20  // end offset
+            20, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         // Verify the reference exists in the index
@@ -322,7 +332,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             10, // end line
             sourceFile,
             10, // start offset
-            20  // end offset
+            20, // end offset
+            20  // self line number (where the reference is defined in source file)
         )
         
         referenceIndex.addReference(
@@ -331,7 +342,8 @@ class ReferenceNavigationTest : BasePlatformTestCase() {
             20, // end line
             sourceFile,
             30, // start offset
-            40  // end offset
+            40, // end offset
+            30  // self line number (where the reference is defined in source file)
         )
         
         // Verify that both line ranges were added

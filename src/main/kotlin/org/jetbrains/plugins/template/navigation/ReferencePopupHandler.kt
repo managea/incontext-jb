@@ -36,7 +36,7 @@ object ReferencePopupHandler {
         
         // Deduplicate references by source file and line numbers
         val uniqueReferences = references.distinctBy { 
-            "${it.sourceFile.path}:${it.startLine}-${it.endLine}" 
+            "${it.sourceFile.path}:${it.selfLineNumber}" 
         }
         
         LOG.debug("After deduplication: ${uniqueReferences.size} unique references to ${file.path}:$lineNumber")
@@ -48,14 +48,18 @@ object ReferencePopupHandler {
                 PsiManager.getInstance(project).findFile(sourceFile) ?: return@mapIndexed null
             ) ?: return@mapIndexed null
             
-            // Convert offset to line number for display
-            val startLine = document.getLineNumber(reference.startOffset) + 1
+            // Use the selfLineNumber for display if available, otherwise calculate from offset
+            val displayLine = if (reference.selfLineNumber > 0) {
+                reference.selfLineNumber
+            } else {
+                document.getLineNumber(reference.startOffset) + 1
+            }
             
             // Include line range information if available
             val displayText = if (reference.startLine > 0 && reference.endLine > 0 && reference.endLine > reference.startLine) {
-                "Reference ${index + 1}: ${sourceFile.name}:L${reference.startLine}-${reference.endLine}"
+                "Reference ${index + 1}: ${sourceFile.name}:L$displayLine (points to L${reference.startLine}-${reference.endLine})"
             } else {
-                "Reference ${index + 1}: ${sourceFile.name}:$startLine"
+                "Reference ${index + 1}: ${sourceFile.name}:L$displayLine"
             }
             
             ReferenceItem(
@@ -94,25 +98,29 @@ object ReferencePopupHandler {
      */
     private fun navigateToReference(project: Project, reference: FileReferenceIndex.Reference) {
         val file = reference.sourceFile
-        LOG.debug("Navigating to reference in ${file.path} at offset ${reference.startOffset}")
         
-        // Use the stored offset for precise navigation
-        val descriptor = OpenFileDescriptor(project, file, reference.startOffset)
-        val editor = FileEditorManager.getInstance(project).openTextEditor(descriptor, true)
-        
-        // If we have a line range, select the text in that range
-        if (editor != null && reference.startLine > 0 && reference.endLine > 0 && reference.endLine > reference.startLine) {
-            try {
-                val document = editor.document
-                val startOffset = document.getLineStartOffset(reference.startLine - 1)
-                val endOffset = document.getLineEndOffset(reference.endLine - 1)
-                editor.selectionModel.setSelection(startOffset, endOffset)
-                editor.caretModel.moveToOffset(startOffset)
-                editor.scrollingModel.scrollToCaret(com.intellij.openapi.editor.ScrollType.CENTER)
-            } catch (e: Exception) {
-                LOG.error("Error selecting text range", e)
+        // If we have a selfLineNumber, use that for navigation
+        if (reference.selfLineNumber > 0) {
+            LOG.debug("Navigating to reference in ${file.path} at line ${reference.selfLineNumber}")
+            
+            // Get the document to convert line number to offset
+            val psiFile = PsiManager.getInstance(project).findFile(file)
+            if (psiFile != null) {
+                val document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
+                if (document != null) {
+                    // Convert line number to offset (line numbers are 1-based, so subtract 1)
+                    val lineOffset = document.getLineStartOffset(reference.selfLineNumber - 1)
+                    val descriptor = OpenFileDescriptor(project, file, lineOffset)
+                    descriptor.navigate(true)
+                    return
+                }
             }
         }
+        
+        // Fall back to using the stored offset for navigation if selfLineNumber isn't available
+        LOG.debug("Navigating to reference in ${file.path} at offset ${reference.startOffset}")
+        val descriptor = OpenFileDescriptor(project, file, reference.startOffset)
+        descriptor.navigate(true)
     }
     
     /**

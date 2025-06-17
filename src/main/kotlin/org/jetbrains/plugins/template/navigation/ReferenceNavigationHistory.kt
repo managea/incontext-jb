@@ -36,11 +36,12 @@ class FileReferenceIndex(private val project: Project) {
         targetEndLine: Int,
         sourceFile: VirtualFile,
         sourceStartOffset: Int,
-        sourceEndOffset: Int
+        sourceEndOffset: Int,
+        selfLineNumber: Int
     ) {
         val targetPath = targetFile.path
         val lineRange = LineRange(targetStartLine, targetEndLine)
-        val reference = Reference(sourceFile, sourceStartOffset, sourceEndOffset, targetStartLine, targetEndLine)
+        val reference = Reference(sourceFile, sourceStartOffset, sourceEndOffset, targetStartLine, targetEndLine, selfLineNumber)
         
         LOG.debug("Adding reference from ${sourceFile.path} to $targetPath:$targetStartLine-$targetEndLine")
         
@@ -185,6 +186,7 @@ class FileReferenceIndex(private val project: Project) {
         val startOffset: Int,
         val endOffset: Int,
         val startLine: Int = 0,  // Store the target start line
-        val endLine: Int = 0     // Store the target end line
+        val endLine: Int = 0,    // Store the target end line
+        val selfLineNumber: Int = 0  // Store the line number where the reference is defined in the source file
     )
 }

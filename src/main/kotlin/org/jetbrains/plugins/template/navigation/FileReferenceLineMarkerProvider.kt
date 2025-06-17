@@ -14,6 +14,7 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -91,8 +92,13 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         // Get the virtual file
         val virtualFile = PsiUtilCore.getVirtualFile(file) ?: return
         
-        // Create a unique key for this file
-        val fileKey = "${project.name}:${virtualFile.path}"
+        // Get the module for this file
+        val projectFileIndex = ProjectFileIndex.getInstance(project)
+        val module = projectFileIndex.getModuleForFile(virtualFile)
+        val moduleName = module?.name ?: project.name
+        
+        // Create a unique key for this file using module name instead of project name
+        val fileKey = "$moduleName:${virtualFile.path}"
         
         // Check if this is a target file for detailed logging
         val isTargetFile = DEBUG_FILE_PATTERNS.isEmpty() || DEBUG_FILE_PATTERNS.any { virtualFile.path.contains(it) }

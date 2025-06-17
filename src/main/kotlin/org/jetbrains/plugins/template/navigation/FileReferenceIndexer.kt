@@ -149,7 +149,11 @@ class FileReferenceIndexer(private val project: Project) {
                     val startLine = startLineStr?.toIntOrNull() ?: 1
                     val endLine = endLineStr?.toIntOrNull() ?: startLine
                     
-                    LOG.debug("Found reference: $filePath:L$startLine${if (endLine > startLine) "-$endLine" else ""}")
+                    // Calculate the line number where this reference is defined
+                    val referenceStartOffset = matcher.start()
+                    val selfLineNumber = document.getLineNumber(referenceStartOffset) + 1 // Convert to 1-based line number
+                    
+                    LOG.debug("Found reference: $filePath:L$startLine${if (endLine > startLine) "-$endLine" else ""} at line $selfLineNumber")
                     
                     // Find the target file
                     val targetFile = findFileInProject(filePath)
@@ -161,7 +165,8 @@ class FileReferenceIndexer(private val project: Project) {
                             endLine,
                             file,
                             matcher.start(),
-                            matcher.end()
+                            matcher.end(),
+                            selfLineNumber
                         )
                     } else {
                         LOG.debug("Target file not found: $filePath")

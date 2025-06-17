@@ -6,8 +6,11 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.template.navigation.FileReferenceIndex
 import org.jetbrains.plugins.template.navigation.FileReferenceIndexer
@@ -15,14 +18,14 @@ import java.io.File
 
 /**
  * Annotator that makes file references clickable.
- * Format: @project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}
+ * Format: @module-name/path-from-module-root/file-name:L{from-line-number}-{to-line-number}
  */
 class FileReferenceAnnotator : Annotator {
     companion object {
         private val LOG = Logger.getInstance(FileReferenceAnnotator::class.java)
         // Updated pattern to handle both formats:
-        // 1. @workspace/project/path:L1-2
-        // 2. @workspace/project/path:L1 (single line)
+        // 1. @module/path:L1-2
+        // 2. @module/path:L1 (single line)
         // Also handle cases with full paths that might have double slashes
         private val REFERENCE_PATTERN = "@([\\w-]+/[\\w\\-./]+):L(\\d+)(?:-(\\d+))?".toRegex()
     }
@@ -88,7 +91,7 @@ class FileReferenceAnnotator : Annotator {
             var targetFile = findTargetFile(project, referenceParts)
             
             if (targetFile == null) {
-                LOG.warn("Could not find target file for reference: ${referenceParts.projectName}/${referenceParts.relativePath}")
+                LOG.warn("Could not find target file for reference: ${referenceParts.moduleName}/${referenceParts.relativePath}")
                 return
             }
             
@@ -96,8 +99,12 @@ class FileReferenceAnnotator : Annotator {
             val sourceFile = element.containingFile.virtualFile
             val sourceOffset = element.textRange.startOffset
             val sourceEndOffset = element.textRange.endOffset
+            
+            // Calculate the line number where this reference is defined
+            val document = PsiDocumentManager.getInstance(project).getDocument(element.containingFile)
+            val selfLineNumber = document?.getLineNumber(sourceOffset)?.plus(1) ?: 0 // Convert to 1-based line number
 
-            LOG.debug("Adding reference from ${sourceFile.path} (offsets: $sourceOffset-$sourceEndOffset) to ${targetFile.path}:${referenceParts.startLine}-${referenceParts.endLine}")
+            LOG.debug("Adding reference from ${sourceFile.path} (offsets: $sourceOffset-$sourceEndOffset) to ${targetFile.path}:${referenceParts.startLine}-${referenceParts.endLine} at line $selfLineNumber")
 
             // Add the reference to the index
             val referenceIndex = FileReferenceIndex.getInstance(project)
@@ -107,7 +114,8 @@ class FileReferenceAnnotator : Annotator {
                 referenceParts.endLine,
                 sourceFile,
                 sourceOffset,
-                sourceEndOffset
+                sourceEndOffset,
+                selfLineNumber
             )
 
             // Refresh code analysis to update gutter icons
@@ -124,7 +132,7 @@ class FileReferenceAnnotator : Annotator {
      */
     private fun findTargetFile(project: Project, referenceParts: ParsedReference): com.intellij.openapi.vfs.VirtualFile? {
         val basePath = project.basePath ?: return null
-        LOG.debug("Finding target file for reference: ${referenceParts.projectName}/${referenceParts.relativePath}")
+        LOG.debug("Finding target file for reference: ${referenceParts.moduleName}/${referenceParts.relativePath}")
         LOG.debug("Current project base path: $basePath")
         
         // Strategy 1: Direct path from project root
@@ -136,27 +144,27 @@ class FileReferenceAnnotator : Annotator {
             return targetFile
         }
         
-        // Strategy 2: Try with project name in path
-        val pathWithProject = "$basePath/${referenceParts.projectName}/${referenceParts.relativePath}"
-        LOG.debug("Trying with project name: $pathWithProject")
-        targetFile = LocalFileSystem.getInstance().findFileByPath(pathWithProject)
+        // Strategy 2: Try with module name in path
+        val pathWithModule = "$basePath/${referenceParts.moduleName}/${referenceParts.relativePath}"
+        LOG.debug("Trying with module name: $pathWithModule")
+        targetFile = LocalFileSystem.getInstance().findFileByPath(pathWithModule)
         if (targetFile != null) {
-            LOG.debug("Found file using project name path")
+            LOG.debug("Found file using module name path")
             return targetFile
         }
         
         // Strategy 3: Check if we're in a multi-project workspace
         // Look for sibling directories at the workspace level
         val workspacePath = basePath.substringBeforeLast("/")
-        val projectNameDir = File("$workspacePath/${referenceParts.projectName}")
+        val moduleNameDir = File("$workspacePath/${referenceParts.moduleName}")
         
-        if (projectNameDir.exists() && projectNameDir.isDirectory) {
-            // The project directory exists as a sibling to the current project
-            val siblingProjectPath = "$workspacePath/${referenceParts.projectName}/${referenceParts.relativePath}"
-            LOG.debug("Trying sibling project path: $siblingProjectPath")
-            targetFile = LocalFileSystem.getInstance().findFileByPath(siblingProjectPath)
+        if (moduleNameDir.exists() && moduleNameDir.isDirectory) {
+            // The module directory exists as a sibling to the current project
+            val siblingModulePath = "$workspacePath/${referenceParts.moduleName}/${referenceParts.relativePath}"
+            LOG.debug("Trying sibling module path: $siblingModulePath")
+            targetFile = LocalFileSystem.getInstance().findFileByPath(siblingModulePath)
             if (targetFile != null) {
-                LOG.debug("Found file using sibling project path")
+                LOG.debug("Found file using sibling module path")
                 return targetFile
             }
         }
@@ -167,32 +175,32 @@ class FileReferenceAnnotator : Annotator {
         // Try common project directory names
         val possibleProjectDirs = listOf("src", "app", "lib", "packages", "projects", "modules", "backend", "frontend")
         
-        // First try with the project name as a directory
-        val projectNamePath = "$workspacePath/${referenceParts.projectName}/${referenceParts.relativePath}"
-        LOG.debug("Trying project name path: $projectNamePath")
-        targetFile = LocalFileSystem.getInstance().findFileByPath(projectNamePath)
+        // First try with the module name as a directory
+        val moduleNamePath = "$workspacePath/${referenceParts.moduleName}/${referenceParts.relativePath}"
+        LOG.debug("Trying module name path: $moduleNamePath")
+        targetFile = LocalFileSystem.getInstance().findFileByPath(moduleNamePath)
         if (targetFile != null) {
-            LOG.debug("Found file using project name path")
+            LOG.debug("Found file using module name path")
             return targetFile
         }
         
         // Then try with common project directories
         for (projectDir in possibleProjectDirs) {
-            // Try the project name as a parent directory
-            val path1 = "$workspacePath/${referenceParts.projectName}/$projectDir/${referenceParts.relativePath}"
-            LOG.debug("Trying path with project name as parent: $path1")
+            // Try the module name as a parent directory
+            val path1 = "$workspacePath/${referenceParts.moduleName}/$projectDir/${referenceParts.relativePath}"
+            LOG.debug("Trying path with module name as parent: $path1")
             targetFile = LocalFileSystem.getInstance().findFileByPath(path1)
             if (targetFile != null) {
-                LOG.debug("Found file using project name as parent")
+                LOG.debug("Found file using module name as parent")
                 return targetFile
             }
             
-            // Try the project name as a child directory
-            val path2 = "$workspacePath/$projectDir/${referenceParts.projectName}/${referenceParts.relativePath}"
-            LOG.debug("Trying path with project name as child: $path2")
+            // Try the module name as a child directory
+            val path2 = "$workspacePath/$projectDir/${referenceParts.moduleName}/${referenceParts.relativePath}"
+            LOG.debug("Trying path with module name as child: $path2")
             targetFile = LocalFileSystem.getInstance().findFileByPath(path2)
             if (targetFile != null) {
-                LOG.debug("Found file using project name as child")
+                LOG.debug("Found file using module name as child")
                 return targetFile
             }
         }
@@ -214,7 +222,7 @@ class FileReferenceAnnotator : Annotator {
     }
 
     /**
-     * Parse a reference in the format: @project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}
+     * Parse a reference in the format: @module-name/path-from-module-root/file-name:L{from-line-number}-{to-line-number}
      */
     private fun parseReference(ref: String): ParsedReference? {
         try {
@@ -232,14 +240,14 @@ class FileReferenceAnnotator : Annotator {
             // Extract the path part (everything before the line numbers)
             val pathPart = refWithoutPrefix.substring(0, lineNumbersMatch.range.first)
 
-            // Check if the path starts with a project name
+            // Check if the path starts with a module name
             val pathComponents = pathPart.split("/", limit = 2)
-            val projectName = pathComponents[0]
+            val moduleName = pathComponents[0]
 
-            // Get the relative path within the project
+            // Get the relative path within the module
             val relativePath = if (pathComponents.size > 1) pathComponents[1] else ""
 
-            return ParsedReference(projectName, relativePath, startLine, endLine)
+            return ParsedReference(moduleName, relativePath, startLine, endLine)
         } catch (e: Exception) {
             LOG.warn("Failed to parse reference: $ref", e)
             return null
@@ -250,7 +258,7 @@ class FileReferenceAnnotator : Annotator {
      * Data class to hold the parsed reference components
      */
     data class ParsedReference(
-        val projectName: String,
+        val moduleName: String,
         val relativePath: String,
         val startLine: Int,
         val endLine: Int
