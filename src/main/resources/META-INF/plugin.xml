@@ -11,6 +11,13 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="org.jetbrains.plugins.template.startup.MyProjectActivity" />
+        
+        <!-- Register services -->
+        <projectService serviceImplementation="org.jetbrains.plugins.template.navigation.FileReferenceIndex"/>
+        <projectService serviceImplementation="org.jetbrains.plugins.template.navigation.FileReferenceIndexer"/>
+        
+        <!-- Register startup activity to initialize the indexer -->
+        <postStartupActivity implementation="org.jetbrains.plugins.template.startup.FileReferenceStartupActivity" />
 
         <!-- Register the reference contributors for clickable file references -->
         <psi.referenceContributor language="" implementation="org.jetbrains.plugins.template.reference.FileLineReferenceContributor"/>
@@ -22,6 +29,10 @@
 
         <!-- Register the Go to Declaration handler for Command+click navigation -->
         <gotoDeclarationHandler implementation="org.jetbrains.plugins.template.handlers.FileReferenceGotoDeclarationHandler"/>
+
+        <!-- Register the line marker provider to show references in the gutter -->
+        <codeInsight.lineMarkerProvider language="" implementationClass="org.jetbrains.plugins.template.navigation.FileReferenceLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="TEXT" implementationClass="org.jetbrains.plugins.template.navigation.FileReferenceLineMarkerProvider"/>
     </extensions>
 
     <actions>
