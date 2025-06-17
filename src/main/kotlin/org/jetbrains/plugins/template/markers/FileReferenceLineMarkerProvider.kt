@@ -36,7 +36,7 @@ class FileReferenceLineMarkerProvider : LineMarkerProvider {
             val range = match.range
             val reference = match.value
 
-            LOG.info("Found file reference: $reference")
+            LOG.debug("Found file reference: $reference")
 
             // Extract components from the reference
             val referenceParts = parseReference(reference) ?: continue
@@ -99,12 +99,12 @@ class FileReferenceLineMarkerProvider : LineMarkerProvider {
      * Navigate to the specified file and select the specified lines
      */
     private fun navigateToFileAndSelectLines(project: Project, filePath: String, startLine: Int, endLine: Int): Boolean {
-        LOG.info("Navigating to file: $filePath, lines: $startLine-$endLine")
+        LOG.debug("Navigating to file: $filePath, lines: $startLine-$endLine")
 
         val basePath = project.basePath ?: return false
         val absolutePath = File(basePath, filePath).absolutePath
 
-        LOG.info("Absolute path: $absolutePath")
+        LOG.debug("Absolute path: $absolutePath")
 
         // Find the virtual file
         val virtualFile = LocalFileSystem.getInstance().findFileByPath(absolutePath)
@@ -138,7 +138,7 @@ class FileReferenceLineMarkerProvider : LineMarkerProvider {
         // Scroll to make the selection visible
         editor.scrollingModel.scrollToCaret(ScrollType.CENTER)
 
-        LOG.info("Successfully navigated to file and selected lines")
+        LOG.debug("Successfully navigated to file and selected lines")
         return true
     }
 

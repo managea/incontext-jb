@@ -48,7 +48,7 @@ class FileReferenceGotoDeclarationHandler : GotoDeclarationHandler {
 
             if (offset in referenceStartOffset until referenceEndOffset) {
                 val reference = match.value
-                LOG.info("Found reference at cursor: $reference")
+                LOG.debug("Found reference at cursor: $reference")
 
                 // Parse the reference
                 val parsedRef = parseReference(reference) ?: continue

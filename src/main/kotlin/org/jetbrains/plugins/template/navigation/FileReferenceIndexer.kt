@@ -63,7 +63,7 @@ class FileReferenceIndexer(private val project: Project) {
         override fun contentsChanged(event: VirtualFileEvent) {
             val file = event.file
             if (shouldProcessFile(file)) {
-                LOG.info("File contents changed: ${file.path}")
+                LOG.debug("File contents changed: ${file.path}")
                 processFile(file)
             }
         }
@@ -71,14 +71,14 @@ class FileReferenceIndexer(private val project: Project) {
         override fun fileCreated(event: VirtualFileEvent) {
             val file = event.file
             if (shouldProcessFile(file)) {
-                LOG.info("File created: ${file.path}")
+                LOG.debug("File created: ${file.path}")
                 processFile(file)
             }
         }
         
         override fun fileDeleted(event: VirtualFileEvent) {
             val file = event.file
-            LOG.info("File deleted: ${file.path}")
+            LOG.debug("File deleted: ${file.path}")
             
             // Remove all references from this file
             val referenceIndex = FileReferenceIndex.getInstance(project)
@@ -98,7 +98,7 @@ class FileReferenceIndexer(private val project: Project) {
      * Process all files in the project to build the reference index
      */
     fun indexProject() {
-        LOG.info("Indexing project files for references")
+        LOG.debug("Indexing project files for references")
         
         ReadAction.run<Throwable> {
             val psiManager = PsiManager.getInstance(project)
@@ -109,7 +109,7 @@ class FileReferenceIndexer(private val project: Project) {
                 collectFiles(baseDir, projectFiles)
             }
             
-            LOG.info("Found ${projectFiles.size} files to process")
+            LOG.debug("Found ${projectFiles.size} files to process")
             
             // Process each file
             for (file in projectFiles) {
@@ -124,7 +124,7 @@ class FileReferenceIndexer(private val project: Project) {
      * Process a single file to extract references
      */
     fun processFile(file: VirtualFile) {
-        LOG.info("Processing file for references: ${file.path}")
+        LOG.debug("Processing file for references: ${file.path}")
         
         ReadAction.run<Throwable> {
             try {
@@ -149,7 +149,7 @@ class FileReferenceIndexer(private val project: Project) {
                     val startLine = startLineStr?.toIntOrNull() ?: 1
                     val endLine = endLineStr?.toIntOrNull() ?: startLine
                     
-                    LOG.info("Found reference: $filePath:L$startLine${if (endLine > startLine) "-$endLine" else ""}")
+                    LOG.debug("Found reference: $filePath:L$startLine${if (endLine > startLine) "-$endLine" else ""}")
                     
                     // Find the target file
                     val targetFile = findFileInProject(filePath)
@@ -164,7 +164,7 @@ class FileReferenceIndexer(private val project: Project) {
                             matcher.end()
                         )
                     } else {
-                        LOG.info("Target file not found: $filePath")
+                        LOG.debug("Target file not found: $filePath")
                     }
                 }
                 
@@ -231,7 +231,7 @@ class FileReferenceIndexer(private val project: Project) {
     private fun collectFiles(dir: VirtualFile, result: MutableList<VirtualFile>) {
         // Skip excluded directories
         if (shouldSkipDirectory(dir)) {
-            LOG.info("Skipping excluded directory: ${dir.path}")
+            LOG.debug("Skipping excluded directory: ${dir.path}")
             return
         }
         
@@ -250,7 +250,7 @@ class FileReferenceIndexer(private val project: Project) {
     private fun collectFilesByName(dir: VirtualFile, name: String, result: MutableList<VirtualFile>) {
         // Skip excluded directories
         if (shouldSkipDirectory(dir)) {
-            LOG.info("Skipping excluded directory: ${dir.path}")
+            LOG.debug("Skipping excluded directory: ${dir.path}")
             return
         }
         
@@ -319,23 +319,23 @@ class FileReferenceIndexer(private val project: Project) {
                 // Add all files that have references
                 for (filePath in fileIndex.getAllFilesWithReferences()) {
                     val fileUrl = "file://$filePath"
-                    LOG.info("Looking for file: $fileUrl")
+                    LOG.debug("Looking for file: $fileUrl")
                     val file = VirtualFileManager.getInstance().findFileByUrl(fileUrl)
                     if (file != null && file.exists()) {
-                        LOG.info("Found file: ${file.path}")
+                        LOG.debug("Found file: ${file.path}")
                         filesWithReferences.add(file)
                     } else {
                         LOG.warn("Could not find file: $filePath")
                     }
                 }
                 
-                LOG.info("Refreshing code analysis for ${filesWithReferences.size} files")
+                LOG.debug("Refreshing code analysis for ${filesWithReferences.size} files")
                 
                 // Refresh code analysis for each file
                 for (file in filesWithReferences) {
                     val psiFile = psiManager.findFile(file)
                     if (psiFile != null) {
-                        LOG.info("Restarting daemon code analyzer for ${file.path}")
+                        LOG.debug("Restarting daemon code analyzer for ${file.path}")
                         daemonCodeAnalyzer.restart(psiFile)
                     } else {
                         LOG.warn("Could not find PSI file for ${file.path}")
@@ -352,7 +352,7 @@ class FileReferenceIndexer(private val project: Project) {
      * Manually refresh code analysis for a specific file
      */
     fun refreshFileCodeAnalysis(filePath: String) {
-        LOG.info("Manual refresh requested for file: $filePath")
+        LOG.debug("Manual refresh requested for file: $filePath")
         
         // Clear the line marker provider caches
         FileReferenceLineMarkerProvider.clearCache()
@@ -360,15 +360,15 @@ class FileReferenceIndexer(private val project: Project) {
         ApplicationManager.getApplication().invokeLater {
             ReadAction.run<Throwable> {
                 val fileUrl = "file://$filePath"
-                LOG.info("Looking for file: $fileUrl")
+                LOG.debug("Looking for file: $fileUrl")
                 val file = VirtualFileManager.getInstance().findFileByUrl(fileUrl)
                 
                 if (file != null && file.exists()) {
-                    LOG.info("Found file: ${file.path}")
+                    LOG.debug("Found file: ${file.path}")
                     val psiFile = PsiManager.getInstance(project).findFile(file)
                     
                     if (psiFile != null) {
-                        LOG.info("Restarting daemon code analyzer for ${file.path}")
+                        LOG.debug("Restarting daemon code analyzer for ${file.path}")
                         DaemonCodeAnalyzer.getInstance(project).restart(psiFile)
                         
                         // Dump the cache state for debugging

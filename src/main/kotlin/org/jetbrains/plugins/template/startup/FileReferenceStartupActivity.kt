@@ -15,7 +15,7 @@ class FileReferenceStartupActivity : StartupActivity {
     }
     
     override fun runActivity(project: Project) {
-        LOG.info("Initializing file reference indexer")
+        LOG.debug("Initializing file reference indexer")
         
         // Get the indexer service and index the project
         val indexer = FileReferenceIndexer.getInstance(project)

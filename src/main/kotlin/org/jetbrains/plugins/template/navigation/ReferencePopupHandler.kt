@@ -28,18 +28,18 @@ object ReferencePopupHandler {
         val references = referenceIndex.findReferencesToLocation(file, lineNumber)
         
         if (references.isEmpty()) {
-            LOG.info("No references found for ${file.path}:$lineNumber")
+            LOG.debug("No references found for ${file.path}:$lineNumber")
             return
         }
         
-        LOG.info("Found ${references.size} references to ${file.path}:$lineNumber")
+        LOG.debug("Found ${references.size} references to ${file.path}:$lineNumber")
         
         // Deduplicate references by source file and line numbers
         val uniqueReferences = references.distinctBy { 
             "${it.sourceFile.path}:${it.startLine}-${it.endLine}" 
         }
         
-        LOG.info("After deduplication: ${uniqueReferences.size} unique references to ${file.path}:$lineNumber")
+        LOG.debug("After deduplication: ${uniqueReferences.size} unique references to ${file.path}:$lineNumber")
         
         // Create a list of reference items for the popup
         val items = uniqueReferences.mapIndexed { index, reference ->
@@ -94,7 +94,7 @@ object ReferencePopupHandler {
      */
     private fun navigateToReference(project: Project, reference: FileReferenceIndex.Reference) {
         val file = reference.sourceFile
-        LOG.info("Navigating to reference in ${file.path} at offset ${reference.startOffset}")
+        LOG.debug("Navigating to reference in ${file.path} at offset ${reference.startOffset}")
         
         // Use the stored offset for precise navigation
         val descriptor = OpenFileDescriptor(project, file, reference.startOffset)

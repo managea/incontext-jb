@@ -53,7 +53,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
          * Clear all caches to force refresh of gutter icons
          */
         fun clearCache() {
-            LOG.info("Clearing FileReferenceLineMarkerProvider caches")
+            LOG.debug("Clearing FileReferenceLineMarkerProvider caches")
             processedLines.clear()
             processedFiles.clear()
             fileLineRanges.clear()
@@ -63,17 +63,17 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
          * Debug method to dump the current state of the caches
          */
         fun dumpCacheState() {
-            LOG.info("=== FileReferenceLineMarkerProvider Cache State ===")
-            LOG.info("Processed Files: ${processedFiles.size}")
-            LOG.info("Processed Lines: ${processedLines.size} files with processed lines")
+            LOG.debug("=== FileReferenceLineMarkerProvider Cache State ===")
+            LOG.debug("Processed Files: ${processedFiles.size}")
+            LOG.debug("Processed Lines: ${processedLines.size} files with processed lines")
             for ((fileKey, lines) in processedLines) {
-                LOG.info("  $fileKey: ${lines.size} lines processed: ${lines.sorted().joinToString()}")
+                LOG.debug("  $fileKey: ${lines.size} lines processed: ${lines.sorted().joinToString()}")
             }
-            LOG.info("File Line Ranges: ${fileLineRanges.size} files with cached line ranges")
+            LOG.debug("File Line Ranges: ${fileLineRanges.size} files with cached line ranges")
             for ((fileKey, ranges) in fileLineRanges) {
-                LOG.info("  $fileKey: ${ranges.size} ranges: ${ranges.joinToString { "${it.startLine}-${it.endLine}" }}")
+                LOG.debug("  $fileKey: ${ranges.size} ranges: ${ranges.joinToString { "${it.startLine}-${it.endLine}" }}")
             }
-            LOG.info("=== End Cache State ===")
+            LOG.debug("=== End Cache State ===")
         }
     }
 
@@ -102,7 +102,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         
         if (isFirstElement) {
             if (isTargetFile) {
-                LOG.info("First element in file ${virtualFile.path}, processing all lines")
+                LOG.debug("First element in file ${virtualFile.path}, processing all lines")
             }
             
             // Process all lines in the file
@@ -139,13 +139,13 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         
         if (lineRanges.isEmpty()) {
             if (isTargetFile) {
-                LOG.info("No line ranges found for ${virtualFile.path}")
+                LOG.debug("No line ranges found for ${virtualFile.path}")
             }
             return
         }
         
         if (isTargetFile) {
-            LOG.info("File ${virtualFile.path} has ${lineRanges.size} line ranges: ${lineRanges.joinToString { "${it.startLine}-${it.endLine}" }}")
+            LOG.debug("File ${virtualFile.path} has ${lineRanges.size} line ranges: ${lineRanges.joinToString { "${it.startLine}-${it.endLine}" }}")
         }
         
         // Get the processed lines for this file
@@ -157,7 +157,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 // Skip if we've already processed this line
                 if (processedLinesForFile.contains(line)) {
                     if (isTargetFile) {
-                        LOG.info("Line $line already processed, skipping")
+                        LOG.debug("Line $line already processed, skipping")
                     }
                     continue
                 }
@@ -171,13 +171,13 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 
                 if (references.isEmpty()) {
                     if (isTargetFile) {
-                        LOG.info("No references found for ${virtualFile.path}:$line")
+                        LOG.debug("No references found for ${virtualFile.path}:$line")
                     }
                     continue
                 }
                 
                 if (isTargetFile) {
-                    LOG.info("Found ${references.size} references to ${virtualFile.path}:$line")
+                    LOG.debug("Found ${references.size} references to ${virtualFile.path}:$line")
                 }
                 
                 // Create a line marker for this line
@@ -194,7 +194,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
                     result.add(lineMarkerInfo)
                     
                     if (isTargetFile) {
-                        LOG.info("Added gutter icon for ${virtualFile.path}:$line")
+                        LOG.debug("Added gutter icon for ${virtualFile.path}:$line")
                     }
                 } catch (e: Exception) {
                     LOG.error("Error creating gutter icon for ${virtualFile.path}:$line", e)
@@ -219,7 +219,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val lineNumber = document.getLineNumber(startOffset) + 1
         
         if (isTargetFile) {
-            LOG.info("Processing element at ${virtualFile.path}:$lineNumber (element type: ${element.javaClass.simpleName}, text: ${element.text.take(20)})")
+            LOG.debug("Processing element at ${virtualFile.path}:$lineNumber (element type: ${element.javaClass.simpleName}, text: ${element.text.take(20)})")
         }
         
         // Get or compute line ranges for this file
@@ -227,13 +227,13 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         
         if (lineRanges.isEmpty()) {
             if (isTargetFile) {
-                LOG.info("No line ranges found for ${virtualFile.path}")
+                LOG.debug("No line ranges found for ${virtualFile.path}")
             }
             return
         }
         
         if (isTargetFile) {
-            LOG.info("File ${virtualFile.path} has ${lineRanges.size} line ranges: ${lineRanges.joinToString { "${it.startLine}-${it.endLine}" }}")
+            LOG.debug("File ${virtualFile.path} has ${lineRanges.size} line ranges: ${lineRanges.joinToString { "${it.startLine}-${it.endLine}" }}")
         }
         
         // Check if this line is within any of the line ranges
@@ -241,20 +241,20 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         
         if (matchingRanges.isEmpty()) {
             if (isTargetFile) {
-                LOG.info("Line $lineNumber is not within any ranges for ${virtualFile.path}")
+                LOG.debug("Line $lineNumber is not within any ranges for ${virtualFile.path}")
             }
             return
         }
         
         if (isTargetFile) {
-            LOG.info("Line $lineNumber is within ${matchingRanges.size} ranges: ${matchingRanges.joinToString { "${it.startLine}-${it.endLine}" }}")
+            LOG.debug("Line $lineNumber is within ${matchingRanges.size} ranges: ${matchingRanges.joinToString { "${it.startLine}-${it.endLine}" }}")
         }
         
         // Check if we've already processed this line for this file
         val processedLinesForFile = processedLines.computeIfAbsent(fileKey) { ConcurrentHashMap.newKeySet() }
         if (processedLinesForFile.contains(lineNumber)) {
             if (isTargetFile) {
-                LOG.info("Line $lineNumber already processed, skipping")
+                LOG.debug("Line $lineNumber already processed, skipping")
             }
             return
         }
@@ -268,13 +268,13 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         
         if (references.isEmpty()) {
             if (isTargetFile) {
-                LOG.info("No references found for ${virtualFile.path}:$lineNumber")
+                LOG.debug("No references found for ${virtualFile.path}:$lineNumber")
             }
             return
         }
         
         if (isTargetFile) {
-            LOG.info("Found ${references.size} references to ${virtualFile.path}:$lineNumber")
+            LOG.debug("Found ${references.size} references to ${virtualFile.path}:$lineNumber")
         }
         
         // Create a custom gutter icon renderer
@@ -282,7 +282,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
         result.add(lineMarkerInfo)
         
         if (isTargetFile) {
-            LOG.info("Added gutter icon for ${virtualFile.path}:$lineNumber")
+            LOG.debug("Added gutter icon for ${virtualFile.path}:$lineNumber")
         }
     }
     
@@ -294,7 +294,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
             ReadAction.compute<List<FileReferenceIndex.LineRange>, Throwable> {
                 val referenceIndex = FileReferenceIndex.getInstance(project)
                 val ranges = referenceIndex.getAllLineRangesForFile(virtualFile)
-                LOG.info("Computed ${ranges.size} line ranges for ${virtualFile.path}: ${ranges.joinToString { "${it.startLine}-${it.endLine}" }}")
+                LOG.debug("Computed ${ranges.size} line ranges for ${virtualFile.path}: ${ranges.joinToString { "${it.startLine}-${it.endLine}" }}")
                 ranges
             }
         }
@@ -331,7 +331,7 @@ class FileReferenceLineMarkerProvider : RelatedItemLineMarkerProvider() {
                     val editor = FileEditorManager.getInstance(project).selectedTextEditor
                     
                     if (editor != null) {
-                        LOG.info("Showing references popup for ${file.path}:$lineNumber")
+                        LOG.debug("Showing references popup for ${file.path}:$lineNumber")
                         ReferencePopupHandler.showReferencesPopup(project, editor, file, lineNumber)
                     }
                 }

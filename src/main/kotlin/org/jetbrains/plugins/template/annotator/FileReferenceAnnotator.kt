@@ -1,27 +1,16 @@
 package org.jetbrains.plugins.template.annotator
 
-import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
-import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.ScrollType
-import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
 import org.jetbrains.plugins.template.navigation.FileReferenceIndex
 import org.jetbrains.plugins.template.navigation.FileReferenceIndexer
-import java.io.File
 
 /**
  * Annotator that makes file references clickable.
@@ -45,7 +34,7 @@ class FileReferenceAnnotator : Annotator {
             val range = match.range
             val reference = match.value
 
-            LOG.info("Annotating file reference: $reference in element type: ${element.javaClass.simpleName}, text: ${element.text.take(20)}...")
+            LOG.debug("Annotating file reference: $reference in element type: ${element.javaClass.simpleName}, text: ${element.text.take(20)}...")
 
             // Extract components from the reference
             val referenceParts = parseReference(reference) ?: continue
@@ -54,8 +43,8 @@ class FileReferenceAnnotator : Annotator {
             val start = element.textRange.startOffset + range.first
             val end = element.textRange.startOffset + range.last + 1
             val textRange = TextRange(start, end)
-            
-            LOG.info("Reference $reference found at offsets $start-$end in element at ${element.containingFile.name}:${element.textRange.startOffset}")
+
+            LOG.debug("Reference $reference found at offsets $start-$end in element at ${element.containingFile.name}:${element.textRange.startOffset}")
 
             // Update the FileReferenceIndex with this reference
             updateReferenceIndex(element.project, referenceParts, element)
@@ -91,19 +80,19 @@ class FileReferenceAnnotator : Annotator {
             val basePath = project.basePath ?: return
             val targetFilePath = "$basePath/${referenceParts.relativePath}"
             val targetFile = LocalFileSystem.getInstance().findFileByPath(targetFilePath)
-            
+
             if (targetFile == null) {
                 LOG.warn("Could not find target file: $targetFilePath")
                 return
             }
-            
+
             // Get the source file (the file containing the reference)
             val sourceFile = element.containingFile.virtualFile
             val sourceOffset = element.textRange.startOffset
             val sourceEndOffset = element.textRange.endOffset
-            
-            LOG.info("Adding reference from ${sourceFile.path} (offsets: $sourceOffset-$sourceEndOffset) to ${targetFile.path}:${referenceParts.startLine}-${referenceParts.endLine}")
-            
+
+            LOG.debug("Adding reference from ${sourceFile.path} (offsets: $sourceOffset-$sourceEndOffset) to ${targetFile.path}:${referenceParts.startLine}-${referenceParts.endLine}")
+
             // Add the reference to the index
             val referenceIndex = FileReferenceIndex.getInstance(project)
             referenceIndex.addReference(
@@ -114,11 +103,11 @@ class FileReferenceAnnotator : Annotator {
                 sourceOffset,
                 sourceEndOffset
             )
-            
+
             // Refresh code analysis to update gutter icons
             FileReferenceIndexer.getInstance(project).refreshFileCodeAnalysis(targetFilePath)
-            
-            LOG.info("Added reference to index: ${sourceFile.path} -> ${targetFile.path}:${referenceParts.startLine}-${referenceParts.endLine}")
+
+            LOG.debug("Added reference to index: ${sourceFile.path} -> ${targetFile.path}:${referenceParts.startLine}-${referenceParts.endLine}")
         } catch (e: Exception) {
             LOG.error("Failed to update reference index", e)
         }

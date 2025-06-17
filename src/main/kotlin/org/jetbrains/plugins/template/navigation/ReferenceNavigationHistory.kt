@@ -42,7 +42,7 @@ class FileReferenceIndex(private val project: Project) {
         val lineRange = LineRange(targetStartLine, targetEndLine)
         val reference = Reference(sourceFile, sourceStartOffset, sourceEndOffset, targetStartLine, targetEndLine)
         
-        LOG.info("Adding reference from ${sourceFile.path} to $targetPath:$targetStartLine-$targetEndLine")
+        LOG.debug("Adding reference from ${sourceFile.path} to $targetPath:$targetStartLine-$targetEndLine")
         
         // Get or create the map for this target file
         val fileReferences = referenceMap.computeIfAbsent(targetPath) { ConcurrentHashMap() }
@@ -60,9 +60,9 @@ class FileReferenceIndex(private val project: Project) {
         if (existingReference == null) {
             // Only add if it doesn't already exist
             references.add(reference)
-            LOG.info("Added new reference from ${sourceFile.path} to $targetPath:$targetStartLine-$targetEndLine")
+            LOG.debug("Added new reference from ${sourceFile.path} to $targetPath:$targetStartLine-$targetEndLine")
         } else {
-            LOG.info("Reference from ${sourceFile.path} to $targetPath:$targetStartLine-$targetEndLine already exists, skipping")
+            LOG.debug("Reference from ${sourceFile.path} to $targetPath:$targetStartLine-$targetEndLine already exists, skipping")
         }
     }
     
@@ -73,29 +73,29 @@ class FileReferenceIndex(private val project: Project) {
         val filePath = file.path
         val fileReferences = referenceMap[filePath]
         
-        LOG.info("Finding references to $filePath:$lineNumber")
+        LOG.debug("Finding references to $filePath:$lineNumber")
         
         if (fileReferences == null) {
-            LOG.info("No references found for file: $filePath")
+            LOG.debug("No references found for file: $filePath")
             return emptyList()
         }
         
-        LOG.info("File has ${fileReferences.size} line ranges with references")
+        LOG.debug("File has ${fileReferences.size} line ranges with references")
         
         val result = mutableListOf<Reference>()
         
         // Check all line ranges for this file
         for ((lineRange, references) in fileReferences) {
-            LOG.info("Checking line range ${lineRange.startLine}-${lineRange.endLine} for line $lineNumber")
+            LOG.debug("Checking line range ${lineRange.startLine}-${lineRange.endLine} for line $lineNumber")
             
             // Check if the current line is within the referenced range
             if (lineNumber >= lineRange.startLine && lineNumber <= lineRange.endLine) {
-                LOG.info("Line $lineNumber is within range ${lineRange.startLine}-${lineRange.endLine}, adding ${references.size} references")
+                LOG.debug("Line $lineNumber is within range ${lineRange.startLine}-${lineRange.endLine}, adding ${references.size} references")
                 result.addAll(references)
             }
         }
         
-        LOG.info("Found ${result.size} references to $filePath:$lineNumber")
+        LOG.debug("Found ${result.size} references to $filePath:$lineNumber")
         
         return result
     }
@@ -108,7 +108,7 @@ class FileReferenceIndex(private val project: Project) {
         val fileReferences = referenceMap[filePath]
         
         if (fileReferences == null) {
-            LOG.info("No references found for file: $filePath")
+            LOG.debug("No references found for file: $filePath")
             return emptyList()
         }
         
@@ -127,7 +127,7 @@ class FileReferenceIndex(private val project: Project) {
      */
     fun removeReferencesFromFile(file: VirtualFile) {
         val filePath = file.path
-        LOG.info("Removing all references from file: $filePath")
+        LOG.debug("Removing all references from file: $filePath")
         
         // Remove references where this file is the source
         for ((targetPath, lineRanges) in referenceMap) {
@@ -158,7 +158,7 @@ class FileReferenceIndex(private val project: Project) {
      * Clear the entire index
      */
     fun clear() {
-        LOG.info("Clearing reference index")
+        LOG.debug("Clearing reference index")
         referenceMap.clear()
     }
     

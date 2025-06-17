@@ -29,12 +29,12 @@ class FileLineReferenceProvider : PsiReferenceProvider() {
          * Navigate to the specified file and select the specified lines
          */
         fun navigateToFileAndSelectLines(project: Project, filePath: String, startLine: Int, endLine: Int): Boolean {
-            LOG.info("Navigating to file: $filePath, lines: $startLine-$endLine")
+            LOG.debug("Navigating to file: $filePath, lines: $startLine-$endLine")
 
             val basePath = project.basePath ?: return false
             val absolutePath = File(basePath, filePath).absolutePath
 
-            LOG.info("Absolute path: $absolutePath")
+            LOG.debug("Absolute path: $absolutePath")
 
             // Find the virtual file
             val virtualFile = LocalFileSystem.getInstance().findFileByPath(absolutePath)
@@ -68,14 +68,14 @@ class FileLineReferenceProvider : PsiReferenceProvider() {
             // Scroll to make the selection visible
             editor.scrollingModel.scrollToCaret(ScrollType.CENTER)
 
-            LOG.info("Successfully navigated to file and selected lines")
+            LOG.debug("Successfully navigated to file and selected lines")
             return true
         }
     }
 
     override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
         val text = element.text
-        LOG.info("Checking for references in text: $text")
+        LOG.debug("Checking for references in text: $text")
 
         val references = mutableListOf<PsiReference>()
 
@@ -84,7 +84,7 @@ class FileLineReferenceProvider : PsiReferenceProvider() {
             val range = matchResult.range
             val referenceText = matchResult.value
 
-            LOG.info("Found reference match: $referenceText at range $range")
+            LOG.debug("Found reference match: $referenceText at range $range")
 
             // Create a reference for each match
             val reference = FileLineReference(
@@ -98,9 +98,9 @@ class FileLineReferenceProvider : PsiReferenceProvider() {
         }
 
         if (references.isEmpty()) {
-            LOG.info("No references found in text")
+            LOG.debug("No references found in text")
         } else {
-            LOG.info("Found ${references.size} references")
+            LOG.debug("Found ${references.size} references")
         }
 
         return references.toTypedArray()

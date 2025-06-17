@@ -20,7 +20,7 @@ class PlainTextReferenceContributor : PsiReferenceContributor() {
     }
 
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-        LOG.info("Registering reference provider for plain text files")
+        LOG.debug("Registering reference provider for plain text files")
 
         // Specific pattern for plain text elements
         registrar.registerReferenceProvider(
@@ -31,7 +31,7 @@ class PlainTextReferenceContributor : PsiReferenceContributor() {
         // Also register for any text in any language
         val languages = Language.getRegisteredLanguages()
         for (language in languages) {
-            LOG.info("Registering reference provider for language: ${language.displayName}")
+            LOG.debug("Registering reference provider for language: ${language.displayName}")
             registrar.registerReferenceProvider(
                 PlatformPatterns.psiElement().withLanguage(language),
                 FileLineReferenceProvider()
