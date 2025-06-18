@@ -1,6 +1,7 @@
 # InContext
 
-<!-- Plugin description -->
+<!-- Plugin descr
+iption -->
 **InContext** is a plugin that enhances code referencing in JetBrains IDEs. It allows you to create, share, and navigate precise file references in the format:
 
 ```
@@ -23,7 +24,9 @@
 Working example: 
 
 File open code : @main/kotlin/com/asanga/incontext/handlers/FileReferenceGotoDeclarationHandler.kt:L127-134
-Copy action : @main/kotlin/com/asanga/incontext/actions/CopyReferenceAction.kt:L60-67
+Copy action: @main/kotlin/com/asanga/incontext/actions/CopyReferenceAction.kt:L60-67
+
+https://github.com/managea/incontext-jb/main/incontext.m4v
 
 <!-- Plugin description end -->
 
