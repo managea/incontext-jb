@@ -19,5 +19,11 @@
 - Share specific code sections with teammates: `@auth-service/src/main/java/auth/SecurityConfig.java:L45-52`
 - Reference code in documentation: `@frontend/components/Button.tsx:L24-35`
 - Provide exact locations to AI tools: `@api/controllers/UserController.java:L78-92`
+
+Working example: 
+
+File open code : @main/kotlin/com/asanga/incontext/handlers/FileReferenceGotoDeclarationHandler.kt:L127-134
+Copy action : @main/kotlin/com/asanga/incontext/actions/CopyReferenceAction.kt:L60-67
+
 <!-- Plugin description end -->
 
