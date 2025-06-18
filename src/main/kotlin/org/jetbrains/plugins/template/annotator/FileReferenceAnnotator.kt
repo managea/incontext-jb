@@ -112,20 +112,9 @@ class FileReferenceAnnotator : Annotator {
             val end = element.textRange.startOffset + range.last + 1
             val textRange = TextRange(start, end)
 
-            // Add navigation action
-            // Create an annotation with hyperlink for Command+click navigation
             holder.newAnnotation(HighlightSeverity.INFORMATION, "Navigate to file")
                 .range(textRange)
                 .textAttributes(DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE)
-                .tooltip("Click to navigate to ${referenceParts.relativePath}, lines ${referenceParts.startLine}-${referenceParts.endLine}")
-                .newFix(CreateGotoDeclarationHandler(
-                    element.project,
-                    referenceParts.moduleName,
-                    referenceParts.relativePath,
-                    referenceParts.startLine,
-                    referenceParts.endLine
-                ))
-                .registerFix()
                 .create()
 
             // Update the reference index for navigation
