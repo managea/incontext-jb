@@ -1,39 +1,34 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>org.jetbrains.plugins.template</id>
-    <name>Copy Reference</name>
-    <vendor>JetBrains</vendor>
+    <id>com.asanga.incontext</id>
+    <name>InContext</name>
+    <vendor>asanga</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
-    <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-        <postStartupActivity implementation="org.jetbrains.plugins.template.startup.MyProjectActivity" />
-
-        <!-- Register services -->
 
         <!-- Register startup activity to initialize the indexer -->
-        <postStartupActivity implementation="org.jetbrains.plugins.template.startup.FileReferenceStartupActivity" />
+        <postStartupActivity implementation="com.asanga.incontext.startup.FileReferenceStartupActivity" />
 
         <!-- Register the reference contributors for clickable file references -->
-        <psi.referenceContributor language="" implementation="org.jetbrains.plugins.template.reference.FileLineReferenceContributor"/>
-<!--        <psi.referenceContributor language="" implementation="org.jetbrains.plugins.template.reference.PlainTextReferenceContributor"/>-->
+        <psi.referenceContributor language="" implementation="com.asanga.incontext.reference.FileLineReferenceContributor"/>
+<!--        <psi.referenceContributor language="" implementation="com.asanga.incontext.reference.PlainTextReferenceContributor"/>-->
 
         <!-- Register the annotator to make file references directly clickable -->
-        <annotator language="" implementationClass="org.jetbrains.plugins.template.annotator.FileReferenceAnnotator"/>
+        <annotator language="" implementationClass="com.asanga.incontext.annotator.FileReferenceAnnotator"/>
 
         <!-- Register the Go to Declaration handler for Command+click navigation -->
-        <gotoDeclarationHandler implementation="org.jetbrains.plugins.template.handlers.FileReferenceGotoDeclarationHandler"/>
+        <gotoDeclarationHandler implementation="com.asanga.incontext.handlers.FileReferenceGotoDeclarationHandler"/>
 
         <!-- Register the line marker provider to show references in the gutter -->
-        <codeInsight.lineMarkerProvider language="" implementationClass="org.jetbrains.plugins.template.navigation.FileReferenceLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="" implementationClass="com.asanga.incontext.navigation.FileReferenceLineMarkerProvider"/>
     </extensions>
 
     <actions>
-        <action id="org.jetbrains.plugins.template.actions.CopyReferenceAction"
-                class="org.jetbrains.plugins.template.actions.CopyReferenceAction"
+        <action id="com.asanga.incontext.actions.CopyReferenceAction"
+                class="com.asanga.incontext.actions.CopyReferenceAction"
                 text="Copy Reference"
                 description="Copy reference to the selected text in the format: project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}">
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="CopyReference"/>
