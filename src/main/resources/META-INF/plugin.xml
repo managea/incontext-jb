@@ -11,20 +11,17 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="org.jetbrains.plugins.template.startup.MyProjectActivity" />
-        
+
         <!-- Register services -->
-        <projectService serviceImplementation="org.jetbrains.plugins.template.navigation.FileReferenceIndex"/>
-        <projectService serviceImplementation="org.jetbrains.plugins.template.navigation.FileReferenceIndexer"/>
-        
+
         <!-- Register startup activity to initialize the indexer -->
         <postStartupActivity implementation="org.jetbrains.plugins.template.startup.FileReferenceStartupActivity" />
 
         <!-- Register the reference contributors for clickable file references -->
         <psi.referenceContributor language="" implementation="org.jetbrains.plugins.template.reference.FileLineReferenceContributor"/>
-        <psi.referenceContributor language="TEXT" implementation="org.jetbrains.plugins.template.reference.PlainTextReferenceContributor"/>
+<!--        <psi.referenceContributor language="" implementation="org.jetbrains.plugins.template.reference.PlainTextReferenceContributor"/>-->
 
         <!-- Register the annotator to make file references directly clickable -->
-        <annotator language="TEXT" implementationClass="org.jetbrains.plugins.template.annotator.FileReferenceAnnotator"/>
         <annotator language="" implementationClass="org.jetbrains.plugins.template.annotator.FileReferenceAnnotator"/>
 
         <!-- Register the Go to Declaration handler for Command+click navigation -->
@@ -32,7 +29,6 @@
 
         <!-- Register the line marker provider to show references in the gutter -->
         <codeInsight.lineMarkerProvider language="" implementationClass="org.jetbrains.plugins.template.navigation.FileReferenceLineMarkerProvider"/>
-        <codeInsight.lineMarkerProvider language="TEXT" implementationClass="org.jetbrains.plugins.template.navigation.FileReferenceLineMarkerProvider"/>
     </extensions>
 
     <actions>
