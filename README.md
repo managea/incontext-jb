@@ -26,7 +26,7 @@ Working example:
 File open code : @main/kotlin/com/asanga/incontext/handlers/FileReferenceGotoDeclarationHandler.kt:L127-134
 Copy action: @main/kotlin/com/asanga/incontext/actions/CopyReferenceAction.kt:L60-67
 
-https://github.com/managea/incontext-jb/main/incontext.m4v
+<video src="incontext.m4v" width="640" height="360" controls></video>
 
 <!-- Plugin description end -->
 
