@@ -37,6 +37,7 @@
                 text="Copy Reference"
                 description="Copy reference to the selected text in the format: project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}">
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="CopyReference"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl meta alt C"/>
         </action>
     </actions>
 </idea-plugin>

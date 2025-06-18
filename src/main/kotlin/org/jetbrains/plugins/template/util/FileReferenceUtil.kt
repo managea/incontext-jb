@@ -18,7 +18,7 @@ object FileReferenceUtil {
     private val LOG = Logger.getInstance(FileReferenceUtil::class.java)
 
     val FILE_REFERENCE_PATTERN = Pattern.compile(
-        "@([\\w-]+/[\\w\\-./]+):L(\\d+)-(\\d+)",
+        "@([\\w-]+/[\\w\\-./()]+):L(\\d+)-(\\d+)",
         Pattern.CASE_INSENSITIVE
     )
     /**
