@@ -21,4 +21,3 @@
 - Provide exact locations to AI tools: `@api/controllers/UserController.java:L78-92`
 <!-- Plugin description end -->
 
-@InContext/settings.gradle.kts:L1-6
