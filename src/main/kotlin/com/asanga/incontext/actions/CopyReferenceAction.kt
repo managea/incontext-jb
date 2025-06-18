@@ -53,10 +53,10 @@ class CopyReferenceAction : AnAction() {
 
     private fun formatReference(moduleName: String, file: VirtualFile, startLine: Int, endLine: Int): String {
         val filePath = file.path
-        
+
         // Try to find the module name in the path to determine the relative path
         val moduleNameIndex = filePath.indexOf("/$moduleName/")
-        
+
         val relativePath = if (moduleNameIndex >= 0) {
             // If module name is found in the path, use everything after it
             filePath.substring(moduleNameIndex + moduleName.length + 2) // +2 for the two slashes
@@ -67,21 +67,15 @@ class CopyReferenceAction : AnAction() {
 
         return "@$moduleName/$relativePath:L$startLine${if (endLine > startLine) "-$endLine" else ""}"
     }
-    
+
     /**
      * Get the module name for a file using IntelliJ API
      */
     private fun getModuleNameForFile(project: Project, file: VirtualFile): String {
         // Use ProjectFileIndex to get the module for the file
         val projectFileIndex = ProjectFileIndex.getInstance(project)
-        val module = projectFileIndex.getModuleForFile(file)
-        
+        val sourceRootForFile =  projectFileIndex.getContentRootForFile(file)
         // If we found a module, use its name
-        if (module != null) {
-            return module.name
-        }
-        
-        // If no module found, fall back to project name
-        return project.name
+        return sourceRootForFile!!.name
     }
 }
