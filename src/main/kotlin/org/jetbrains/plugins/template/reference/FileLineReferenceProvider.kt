@@ -12,6 +12,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.util.ProcessingContext
+import org.jetbrains.plugins.template.util.FileReferenceUtil
 import java.io.File
 
 /**
@@ -23,7 +24,7 @@ class FileLineReferenceProvider : PsiReferenceProvider() {
         private val LOG = Logger.getInstance(FileLineReferenceProvider::class.java)
 
         // Regex to find references in the format @project/path/to/file.ext:L10-20
-        private val REFERENCE_PATTERN = "@([\\w-]+/[\\w\\-./]+):L(\\d+)-(\\d+)".toRegex()
+        val REFERENCE_PATTERN =  FileReferenceUtil.FILE_REFERENCE_PATTERN.toRegex()
 
         /**
          * Navigate to the specified file and select the specified lines

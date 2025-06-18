@@ -9,6 +9,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiFile
+import org.jetbrains.plugins.template.util.FileReferenceUtil.findFileInProject
 import java.io.File
 
 /**
@@ -17,6 +18,7 @@ import java.io.File
  */
 class CreateGotoDeclarationHandler(
     private val project: Project,
+    private val moduleName: String,
     private val filePath: String,
     private val startLine: Int,
     private val endLine: Int
@@ -50,7 +52,7 @@ class CreateGotoDeclarationHandler(
         LOG.debug("Absolute path: $absolutePath")
 
         // Find the virtual file
-        val virtualFile = LocalFileSystem.getInstance().findFileByPath(absolutePath)
+        val virtualFile = findFileInProject(project, moduleName, absolutePath)
         if (virtualFile == null) {
             LOG.warn("Virtual file not found: $absolutePath")
             return false

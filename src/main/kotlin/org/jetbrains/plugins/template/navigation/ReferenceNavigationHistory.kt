@@ -8,6 +8,59 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.HashMap
 
 /**
+ * Service that tracks navigation history between file references
+ */
+@Service(Service.Level.PROJECT)
+class ReferenceNavigationHistory(private val project: Project) {
+    
+    companion object {
+        private val LOG = Logger.getInstance(ReferenceNavigationHistory::class.java)
+        
+        /**
+         * Get the instance of the service for the given project
+         */
+        fun getInstance(project: Project): ReferenceNavigationHistory {
+            return project.getService(ReferenceNavigationHistory::class.java)
+        }
+    }
+    
+    // Store navigation history as a list of module name, relative path, and line number
+    private val navigationHistory = mutableListOf<NavigationEntry>()
+    
+    /**
+     * Add a navigation entry to the history
+     */
+    fun addNavigation(moduleName: String, relativePath: String, lineNumber: Int) {
+        LOG.debug("Adding navigation to history: $moduleName/$relativePath:L$lineNumber")
+        navigationHistory.add(NavigationEntry(moduleName, relativePath, lineNumber))
+    }
+    
+    /**
+     * Get the navigation history
+     */
+    fun getNavigationHistory(): List<NavigationEntry> {
+        return navigationHistory.toList()
+    }
+    
+    /**
+     * Clear the navigation history
+     */
+    fun clear() {
+        LOG.debug("Clearing navigation history")
+        navigationHistory.clear()
+    }
+    
+    /**
+     * Represents a navigation entry in the history
+     */
+    data class NavigationEntry(
+        val moduleName: String,
+        val relativePath: String,
+        val lineNumber: Int
+    )
+}
+
+/**
  * Service that keeps track of file references for navigation
  */
 @Service(Service.Level.PROJECT)
