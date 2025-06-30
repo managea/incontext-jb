@@ -1,5 +1,5 @@
 # InContext
-
+<img src="logo.png" width="400" alt="InContext Logo"/>
 <!-- Plugin description -->
 **InContext** is a plugin that enhances code referencing in JetBrains IDEs. It allows you to create, share, and navigate precise file references in the format:
 
@@ -28,4 +28,3 @@ Copy action: @main/kotlin/com/asanga/incontext/actions/CopyReferenceAction.kt:L6
 <video src="incontext.m4v" width="640" height="360" controls></video>
 
 <!-- Plugin description end -->
-

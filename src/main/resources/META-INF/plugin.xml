@@ -6,7 +6,6 @@
 
     <depends>com.intellij.modules.platform</depends>
 
-
     <extensions defaultExtensionNs="com.intellij">
 
         <!-- Register startup activity to initialize the indexer -->
