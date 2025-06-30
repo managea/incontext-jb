@@ -1,7 +1,6 @@
 # InContext
 
-<!-- Plugin descr
-iption -->
+<!-- Plugin description -->
 **InContext** is a plugin that enhances code referencing in JetBrains IDEs. It allows you to create, share, and navigate precise file references in the format:
 
 ```

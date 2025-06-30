@@ -13,7 +13,7 @@ import java.io.File
 
 /**
  * Action that copies a reference to the selected text in the format:
- * project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}
+ * project-name/path-from-project-root/file-name:L{from-line-number}:{to-line-number}
  */
 class CopyReferenceAction : AnAction() {
 
@@ -65,7 +65,7 @@ class CopyReferenceAction : AnAction() {
             file.name
         }
 
-        return "@$moduleName/$relativePath:L$startLine${if (endLine > startLine) "-$endLine" else ""}"
+        return "@$moduleName/$relativePath:L$startLine${if (endLine > startLine) ":$endLine" else ""}"
     }
 
     /**

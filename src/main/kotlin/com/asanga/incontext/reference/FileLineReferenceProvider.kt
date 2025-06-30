@@ -16,14 +16,14 @@ import com.asanga.incontext.util.FileReferenceUtil
 import java.io.File
 
 /**
- * Provides references for text patterns like: @project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}
+ * Provides references for text patterns like: @project-name/path-from-project-root/file-name:L{from-line-number}:{to-line-number}
  */
 class FileLineReferenceProvider : PsiReferenceProvider() {
 
     companion object {
         private val LOG = Logger.getInstance(FileLineReferenceProvider::class.java)
 
-        // Regex to find references in the format @project/path/to/file.ext:L10-20
+        // Regex to find references in the format @project/path/to/file.ext:L10:20
         val REFERENCE_PATTERN =  FileReferenceUtil.FILE_REFERENCE_PATTERN.toRegex()
 
         /**

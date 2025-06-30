@@ -18,7 +18,7 @@ object FileReferenceUtil {
     private val LOG = Logger.getInstance(FileReferenceUtil::class.java)
 
     val FILE_REFERENCE_PATTERN = Pattern.compile(
-        "@([\\w-]+/[\\w\\-./()]+):L(\\d+)-(\\d+)",
+        "@([\\w-]+/[\\w\\-./()]+):L(\\d+):(\\d+)",
         Pattern.CASE_INSENSITIVE
     )
     /**
@@ -32,16 +32,16 @@ object FileReferenceUtil {
     )
 
     /**
-     * Parse a reference in the format: @project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number}
-     * or project-name/path-from-project-root/file-name:L{from-line-number}-{to-line-number} (without @ prefix)
+     * Parse a reference in the format: @project-name/path-from-project-root/file-name:L{from-line-number}:{to-line-number}
+     * or project-name/path-from-project-root/file-name:L{from-line-number}:{to-line-number} (without @ prefix)
      */
     fun parseReference(ref: String): ParsedReference? {
         try {
             // Remove the @ prefix if it exists
             val refWithoutPrefix = if (ref.startsWith("@")) ref.substring(1) else ref
 
-            // Match the line number part (L{from-line-number}-{to-line-number})
-            val lineNumbersPattern = ":L(\\d+)-(\\d+)$".toRegex()
+            // Match the line number part (L{from-line-number}:{to-line-number})
+            val lineNumbersPattern = ":L(\\d+):(\\d+)$".toRegex()
             val lineNumbersMatch = lineNumbersPattern.find(refWithoutPrefix) ?: return null
 
             // Extract start and end line numbers
